@@ -39,7 +39,7 @@ var chartHeight = 500;
  * Data *
  ********/
 
-var allData = [];
+var allData;
 
 /**************
  * Load Data  *
@@ -54,7 +54,6 @@ d3.csv("titanic passenger list.csv", (row, i) => {
     sex: row.sex,
     age: +row.age,
     fare: +row.fare,
-    key: i
   };
 }).then(rows => {
   rows.sort(function(a,b) { return (a.name).localeCompare(b.name); });
@@ -63,8 +62,6 @@ d3.csv("titanic passenger list.csv", (row, i) => {
 }).catch(error => {
   console.log(error);
 });
-
-var key = function(d){ return d.key; };
 
 /**********
  * Scales *
@@ -90,6 +87,11 @@ function makeChart(data){
       .domain(d3.extent(allData,function(d){ return d.age; }))
       .range([465,10]);
 
+  // x position
+  x = d3.scaleLinear()
+      .domain([0,data.length-1])
+      .range([60,440]);
+
   // color
   c = d3.scaleOrdinal()
       .domain(["male","female"])
@@ -109,7 +111,36 @@ function makeChart(data){
       .style("width",chartWidth)
       .style("height",chartHeight);
 
-  update(data);
+  var scatter = d3.select(".chart").selectAll("circle")
+      .data(data);
+
+  //ENTER
+  var enter = scatter.enter().append("circle")
+      .attr("fill-opacity",0.85)
+      .attr("r",function(d){ return 5;})
+      .attr("stroke-width","0px")
+    .on("mouseover", function(d){
+      d3.select(this).transition()
+          .attr("stroke-width", "5px")
+          .attr("r", r(d.fare));
+    })
+    .on("mouseout", function(){
+      d3.select(this).transition()
+          .delay(1000)
+          .attr("stroke-width","0px")
+          .attr("r",5);
+    });
+
+  // Add a title to the point (on mouseover)
+  enter.append("svg:title")
+      .text(function(d){ return d.name; });
+
+  //ENTER + UPDATE
+  enter.merge(scatter).transition().duration(1000)
+      .attr("cx",function(d,i){ return x(i); })
+      .attr("cy",function(d){ return y(d.age);})
+      .attr("fill",function(d){ return c(d.sex); })
+      .attr("stroke",function(d){ return s(d.survived); });
 
   xAxis = d3.axisBottom()
       .scale(x)
@@ -138,15 +169,10 @@ function makeChart(data){
       .attr("transform","translate(0,"+(chartHeight-25)+")")
       .call(xAxis)
     .append("text")
-      .text("Click to sample a new passenger.")
-      .attr("x", chartHeight-15)
+      .text("Passengers")
+      .attr("x", chartHeight-65)
       .attr("dy", 12)
       .style("text-anchor", "end");
-
-  canvas.on("click",function(){
-    dataFetch(++index,index+10);
-    index=index%allData.length;
-  });
 
   genderLegend();
   survivedLegend();
@@ -217,72 +243,6 @@ function survivedLegend() {
       .attr("dy",".35em")
       .style("text-anchor","end")
       .text(function(d) { return d; });
-}
-
-/***************
- * Update Loop *
- ***************/
-
-function update(data){
-
-  //BIND DATA
-  var scatter = d3.select(".chart").selectAll("circle")
-      .data(data,key);
-
-  // x position
-  x = d3.scaleLinear()
-      .domain([0,data.length-1])
-      .range([35,490]);
-
-  //UPDATE
-  scatter.attr("stroke-width","5px");
-
-  //ENTER
-  var enter = scatter.enter().append("circle")
-      .attr("fill-opacity",0.85)
-      .attr("r",5)
-      .attr("cx",function(d,i){ return x(i); })
-      .attr("cy",function(d){ return y(d.age); })
-      .attr("stroke",function(d){ return s(d.survived); })
-    .on("mouseover",function(d){
-      d3.select(this).transition()
-        .attr("stroke-width","5px")
-        .attr("r",r(d.fare));
-    })
-    .on("mouseout",function(){
-      d3.select(this).transition()
-        .delay(1000)
-        .attr("stroke-width","0px")
-        .attr("r",5);
-    });
-
-  // Add a title to the point (on mouseover)
-  enter.append("svg:title")
-      .text(function(d){ return d.name;});
-
-  //ENTER + UPDATE
-  enter.merge(scatter).transition().duration(1000)
-      .attr("cx",function(d,i){ return x(i); })
-      .attr("cy",function(d){ return y(d.age); })
-      .attr("fill",function(d){ return c(d.sex); })
-      .attr("stroke",function(d){ return s(d.survived); })
-      .attr("stroke-width","0px");
-
-  //EXIT
-  scatter.exit().transition().duration(1000)
-      .attr("cx",0)
-      .attr("fill-opacity",0)
-      .remove();
-}
-
-function dataFetch(start,stop){
-  if(stop<=allData.length){
-    update(allData.slice(start,stop));
-  }
-  else{
-    var remainder = stop-allData.length;
-    update(allData.slice(start,allData.length).concat(allData.slice(0,remainder)));
-  }
 }
 
 </script>

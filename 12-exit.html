@@ -54,7 +54,6 @@ d3.csv("titanic passenger list.csv", (row, i) => {
     sex: row.sex,
     age: +row.age,
     fare: +row.fare,
-    key: i
   };
 }).then(rows => {
   rows.sort(function(a,b) { return (a.name).localeCompare(b.name); });
@@ -63,8 +62,6 @@ d3.csv("titanic passenger list.csv", (row, i) => {
 }).catch(error => {
   console.log(error);
 });
-
-var key = function(d){ return d.key; };
 
 /**********
  * Scales *
@@ -227,7 +224,7 @@ function update(data){
 
   //BIND DATA
   var scatter = d3.select(".chart").selectAll("circle")
-      .data(data,key);
+      .data(data);
 
   // x position
   x = d3.scaleLinear()
@@ -281,7 +278,7 @@ function dataFetch(start,stop){
   }
   else{
     var remainder = stop-allData.length;
-    update(allData.slice(start,allData.length).concat(allData.slice(0,remainder)));
+    update(allData.slice(start, allData.length).concat(allData.slice(0,remainder)));
   }
 }
 

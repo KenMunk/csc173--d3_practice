@@ -263,9 +263,9 @@ function update(data){
   //ENTER + UPDATE
   enter.merge(scatter).transition().duration(1000)
       .attr("cx",function(d,i){ return x(i); })
-      .attr("cy",function(d){ return y(d.age); })
-      .attr("fill",function(d){ return c(d.sex); })
-      .attr("stroke",function(d){ return s(d.survived); })
+      .attr("cy",function(d){ return y(d.age);})
+      .attr("fill",function(d){ return c(d.sex)})
+      .attr("stroke",function(d){ return s(d.survived)})
       .attr("stroke-width","0px");
 
   //EXIT
@@ -281,7 +281,7 @@ function dataFetch(start,stop){
   }
   else{
     var remainder = stop-allData.length;
-    update(allData.slice(start,allData.length).concat(allData.slice(0,remainder)));
+    update(allData.slice(start, allData.length).concat(allData.slice(0,remainder)));
   }
 }
 
